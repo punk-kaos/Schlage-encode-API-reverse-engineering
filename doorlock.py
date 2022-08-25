@@ -36,17 +36,17 @@ def getlockstate(AccessToken):
 
 
 def togglelock(token, deviceid,lockstate):
-    data='''
-{
-  "attributes": {
-    "lockState": 1
-  }
-}
+    data=f'''
+{{
+  "attributes": {{
+    "lockState": {lockstate}
+  }}
+}}
     '''
     res = requests.put(f"https://api.allegion.yonomi.cloud/v1/devices/{deviceid}",
                        headers={"x-api-key": api_key, "Authorization": f"Bearer {token}",
                                 "content-type": "application/json; charset=UTF-8", "Accept-Encoding": "gzip",
-                                "user-agent": "okhttp/4.2.2","Host":"api.allegion.yonomi.cloud"},
+                                "user-agent": "okhttp/4.2.2"},
                        data=data
                        )
     pprint(res.json()['attributes']['lockState'])
@@ -56,5 +56,5 @@ deviceid=getdevice(AccessToken)
 lockstate=getlockstate(AccessToken)
 print(lockstate)
 togglelock(AccessToken,deviceid,1)
-time.sleep(3)
+time.sleep(10)
 print(getlockstate(AccessToken))
