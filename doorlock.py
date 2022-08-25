@@ -91,6 +91,7 @@ while True:
     if neednewtoken==100:
         print("Reconnecting to Schlage instance to renew token...")
         AccessToken = gettoken()
+        neednewtoken=0
     lockstate=getlockstate(AccessToken)
     if lockstate==1:
         print("Publishing status: LOCKED")
