@@ -1,14 +1,24 @@
+import paho.mqtt.client
 import requests
 import json
 import boto3
 from pycognito.aws_srp import AWSSRP
 from pprint import pprint
 import time
+import paho.mqtt.client as paho
+import random
 
 api_key="hnuu9jbbJr7MssFDWm5nU2Z7nG5Q5rxsaqWsE7e9" # maybe hardcoded into app?
-
 username=""
 password=""
+
+
+broker = '192.168.1.10'
+port = 1883
+topic = "schlage/lock"
+client_id = f'python-mqtt-{random.randint(0, 1000)}'
+
+
 def gettoken():
     client = boto3.client('cognito-idp',region_name='us-west-2')
     aws = AWSSRP(username=username, password=password,
@@ -51,13 +61,39 @@ def togglelock(token, deviceid,lockstate):
                        )
     return res.json()['attributes']['lockState']
 
+def on_message(client, userdata, message):
+    time.sleep(1)
+
+    deviceid=getdevice(AccessToken)
+    if str(message.payload.decode("utf-8")) == "Locked":
+        print("Received lock command")
+        lockstate = togglelock(AccessToken, deviceid, 1)
+        if lockstate==1:
+            client.publish(topic + "/state", "Locked")
+    if str(message.payload.decode("utf-8")) == "Unlocked":
+        print("Received unlock command")
+        lockstate = togglelock(AccessToken, deviceid, 0)
+        if lockstate==0:
+            client.publish(topic + "/state", "Unocked")
+
+print("Connecting to Schlage instance...")
 AccessToken=gettoken()
-deviceid=getdevice(AccessToken)
-lockstate=getlockstate(AccessToken)
-print(f"Current lockstate: {lockstate}")
-lockstate=togglelock(AccessToken,deviceid,1)
-print(f"New lockstate: {lockstate}")
-print("Sleeping to emulate app behavior...")
-time.sleep(10)
-lockstate=getlockstate(AccessToken)
-print(f"Recheck lockstate... Is now {lockstate} which probably is still the old state for some reason...")
+client=paho.Client(client_id)
+client.on_message=on_message
+print("connecting to broker...",broker)
+client.connect(broker)#connect
+client.loop_start() #start loop to process received messages
+print(f"subscribing to topic {topic}/command")
+client.subscribe(topic+"/command")#subscribe
+time.sleep(2)
+
+while True:
+    lockstate=getlockstate(AccessToken)
+    if lockstate==1:
+        print("Publishing status: LOCKED")
+        client.publish(topic+"/state","Locked")
+    if lockstate==0:
+        print("Publishing status: UNLOCKED")
+        client.publish(topic+"/state","Unlocked")
+    time.sleep(30)
+
