@@ -49,12 +49,15 @@ def togglelock(token, deviceid,lockstate):
                                 "user-agent": "okhttp/4.2.2"},
                        data=data
                        )
-    pprint(res.json()['attributes']['lockState'])
-    #pprint(res.json())
+    return res.json()['attributes']['lockState']
+
 AccessToken=gettoken()
 deviceid=getdevice(AccessToken)
 lockstate=getlockstate(AccessToken)
-print(lockstate)
-togglelock(AccessToken,deviceid,1)
+print(f"Current lockstate: {lockstate}")
+lockstate=togglelock(AccessToken,deviceid,1)
+print(f"New lockstate: {lockstate}")
+print("Sleeping to emulate app behavior...")
 time.sleep(10)
-print(getlockstate(AccessToken))
+lockstate=getlockstate(AccessToken)
+print(f"Recheck lockstate... Is now {lockstate} which probably is still the old state for some reason...")
