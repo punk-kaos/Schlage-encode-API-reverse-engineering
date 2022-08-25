@@ -86,8 +86,11 @@ client.loop_start() #start loop to process received messages
 print(f"subscribing to topic {topic}/command")
 client.subscribe(topic+"/command")#subscribe
 time.sleep(2)
-
+neednewtoken=0
 while True:
+    if neednewtoken==100:
+        print("Reconnecting to Schlage instance to renew token...")
+        AccessToken = gettoken()
     lockstate=getlockstate(AccessToken)
     if lockstate==1:
         print("Publishing status: LOCKED")
@@ -95,5 +98,6 @@ while True:
     if lockstate==0:
         print("Publishing status: UNLOCKED")
         client.publish(topic+"/state","Unlocked")
+    neednewtoken+=1
     time.sleep(30)
 
