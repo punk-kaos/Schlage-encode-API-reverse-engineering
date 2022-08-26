@@ -65,16 +65,16 @@ def on_message(client, userdata, message):
     time.sleep(1)
 
     deviceid=getdevice(AccessToken)
-    if str(message.payload.decode("utf-8")) == "Locked":
+    if str(message.payload.decode("utf-8")) == "LOCK":
         print("Received lock command")
         lockstate = togglelock(AccessToken, deviceid, 1)
         if lockstate==1:
-            client.publish(topic + "/state", "Locked")
-    if str(message.payload.decode("utf-8")) == "Unlocked":
+            client.publish(topic + "/state", "LOCKED")
+    if str(message.payload.decode("utf-8")) == "UNLOCK":
         print("Received unlock command")
         lockstate = togglelock(AccessToken, deviceid, 0)
         if lockstate==0:
-            client.publish(topic + "/state", "Unocked")
+            client.publish(topic + "/state", "UNLOCKED")
 
 print("Connecting to Schlage instance...")
 AccessToken=gettoken()
@@ -95,10 +95,10 @@ while True:
     lockstate=getlockstate(AccessToken)
     if lockstate==1:
         print("Publishing status: LOCKED")
-        client.publish(topic+"/state","Locked")
+        client.publish(topic+"/state","LOCKED")
     if lockstate==0:
         print("Publishing status: UNLOCKED")
-        client.publish(topic+"/state","Unlocked")
+        client.publish(topic+"/state","UNLOCKED")
     neednewtoken+=1
     time.sleep(30)
 
