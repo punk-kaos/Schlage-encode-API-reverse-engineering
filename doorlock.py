@@ -7,12 +7,13 @@ from pprint import pprint
 import time
 import paho.mqtt.client as paho
 import random
+import datetime
 
 api_key="hnuu9jbbJr7MssFDWm5nU2Z7nG5Q5rxsaqWsE7e9" # maybe hardcoded into app?
 username=""
 password=""
 
-
+check_interval_seconds = 30
 broker = '192.168.1.10'
 port = 1883
 topic = "schlage/lock"
@@ -78,6 +79,7 @@ def on_message(client, userdata, message):
 
 print("Connecting to Schlage instance...")
 AccessToken=gettoken()
+token_acquired=datetime.datetime.now()
 client=paho.Client(client_id)
 client.on_message=on_message
 print("connecting to broker...",broker)
@@ -86,12 +88,11 @@ client.loop_start() #start loop to process received messages
 print(f"subscribing to topic {topic}/command")
 client.subscribe(topic+"/command")#subscribe
 time.sleep(2)
-neednewtoken=0
 while True:
-    if neednewtoken==100:
+    if datetime.datetime.now() - token_acquired > datetime.timedelta(minutes=58):
         print("Reconnecting to Schlage instance to renew token...")
         AccessToken = gettoken()
-        neednewtoken=0
+        token_acquired = datetime.datetime.now()
     lockstate=getlockstate(AccessToken)
     if lockstate==1:
         print("Publishing status: LOCKED")
@@ -99,6 +100,5 @@ while True:
     if lockstate==0:
         print("Publishing status: UNLOCKED")
         client.publish(topic+"/state","UNLOCKED")
-    neednewtoken+=1
-    time.sleep(30)
+    time.sleep(check_interval_seconds)
 
