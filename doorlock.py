@@ -16,6 +16,8 @@ password=""
 check_interval_seconds = 30
 broker = '192.168.1.10'
 port = 1883
+mqtt_user = ''
+mqtt_password=''
 topic = "schlage/lock"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
@@ -83,6 +85,7 @@ token_acquired=datetime.datetime.now()
 client=paho.Client(client_id)
 client.on_message=on_message
 print("connecting to broker...",broker)
+client.username_pw_set(mqtt_user, mqtt_password)
 client.connect(broker)#connect
 client.loop_start() #start loop to process received messages
 print(f"subscribing to topic {topic}/command")
