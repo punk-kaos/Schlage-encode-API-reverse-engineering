@@ -96,7 +96,14 @@ while True:
         print("Reconnecting to Schlage instance to renew token...")
         AccessToken = gettoken()
         token_acquired = datetime.datetime.now()
-    lockstate=getlockstate(AccessToken)
+
+    try:
+        lockstate=getlockstate(AccessToken)
+    except Exception as err:
+        print("error getting lock state: {0}".format(err))
+        time.sleep(check_interval_seconds*2)
+        continue
+
     if lockstate==1:
         print("Publishing status: LOCKED")
         client.publish(topic+"/state","LOCKED")
